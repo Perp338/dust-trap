@@ -1,0 +1,20 @@
+[node]
+eth_chain_id = 560048
+ether_rpc = "https://rpc.ankr.com/eth_hoodi/251f0cbbfc7edc9475d1ce8ea789ab4a93a15eaa90e01058c75a0d8ea1587978"
+drosera_rpc = "https://relay.hoodi.drosera.io"
+drosera_address = "0x91cB447BaFc6e0EA0F4Fe056F5a9b1F14bb06e5D"
+
+[traps.DustAttackTrap]
+path = "out/DustAttackTrap.sol/DustAttackTrap.json"
+response_contract = "0x5E69BF2C348a63C70f20acDA3409E5A564b5ad03"
+response_function = "executeResponse()"
+cooldown_period_blocks = 30
+min_number_of_operators = 1
+max_number_of_operators = 10
+block_sample_size = 10
+start_block = "latest"
+# Remove duplicate address fields - keep only trap_address or address, not both
+trap_address = "0x5E69BF2C348a63C70f20acDA3409E5A564b5ad03"
+address = "0x15591CFd76EF94597D216DD957C63643Ef0D1271"
+private_trap = true
+whitelist = ["0x040221e51b6232Ad8C9d553B806E0C7A00D1ae4C"]

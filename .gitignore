@@ -1,0 +1,34 @@
+# Sensitive files - NEVER commit these
+.env
+*.key
+*private*
+
+# Build artifacts
+out/
+cache/
+artifacts/
+typechain/
+typechain-types/
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp

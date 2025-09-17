@@ -1,0 +1,14 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["node_modules", "lib"]
+remappings = ["hardhat/=node_modules/hardhat/", "drosera-contracts/=/root/dust-trap/lib/drosera-contracts/"]
+
+[rpc_endpoints]
+hoodi = "${RPC_URL}"
+
+[profile.hoodi]
+extends = "default"
+rpc_url = "${RPC_URL}"
+
+# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
