@@ -1,0 +1,16 @@
+[trap]
+trap_address = "0x7aF49C86CA5f796BAe77Ee7bEeB0D38d002776E6"
+collect_function = "collect()"
+should_respond_function = "shouldRespond(bytes[])"
+
+[response]  
+response_address = "0x4C832Bb03356aAA2eDB6eC50Fe62F3Fc2d74E48c"
+response_function = "respondToDustAttack(bytes)"
+
+[network]
+chain_id = 560048
+rpc_url = "https://rpc.ankr.com/eth_hoodi/6852445d1ba0cde4f6506223f888d4a756889df7254b65674820c4324ab7eeba"
+
+[guardian]
+# Your guardian address (should be the deployer)
+address = "0x040221e51b6232Ad8C9d553B806E0C7A00D1ae4C"
