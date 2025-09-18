@@ -1,132 +1,116 @@
-# Drosera Dust Attack Detection System 🪤
+# 🕸️ Drosera Dust Attack Detection System 🪤
 
-A three-contract system for detecting dust attacks, fully compliant with Drosera network monitoring.
+A sophisticated, three-contract system engineered to detect and respond to dust attack patterns in real-time, fully compliant with the Drosera network.
 
-## Architecture
+## 🎯 Project Overview
+
+This system monitors blockchain transactions for mass low-value transfers (dust attacks) that are commonly used to create transaction noise, manipulate airdrops, and compromise protocol security.
+
+### 🔍 What Are Dust Attacks?
+
+Dust attacks involve sending numerous tiny-value transactions to:
+- **Transaction noise** that hides malicious activity
+- **Sybil identities** for airdrop abuse
+- **Governance manipulation** through multiple micro-interactions
+- **Network congestion** as a denial-of-service vector
+
+## ⚡ How It Works
+
+The system uses a recorder-assisted detection mechanism.
 
 ### 1. **DustRecorder.sol** 📊
-- Ring buffer storing transaction data
-- Called by target contracts on each transfer
-- Provides `getLast(k)` for the trap to analyze
+- A lightweight contract with a ring buffer that stores data about incoming transactions.
+- Target contracts call the `record()` function on every transfer they want to monitor.
 
 ### 2. **DustAttackTrap.sol** 🪤 (Drosera-compliant)
-- **collect()**: Returns encoded analysis of recent transactions
-- **shouldRespond()**: Pure function determining if alert needed
-- No state mutations, only view/pure functions
+- **`collect()`**: Periodically called by the Drosera network, this function reads the latest entries from the `DustRecorder`.
+- **`shouldRespond()`**: A pure function that analyzes the collected data for dust attack patterns (e.g., high frequency of low-value transfers from multiple unique senders within a specific block window). It triggers an alert if the configured thresholds are met.
 
 ### 3. **DustAttackResponder.sol** 🚨
-- Receives alerts from Drosera guardian
-- Emits events and takes automated actions
-- Guardian-protected response functions
+- A separate contract that receives alerts from the Drosera guardian.
+- It emits a `DustAttackAlert` event and can be configured to take automated actions, like pausing a contract.
 
-## Drosera Compliance ✅
+## 🏗️ Technical Architecture
 
-- ✅ `collect() external view returns (bytes)`
-- ✅ `shouldRespond(bytes[]) external pure returns (bool, bytes)`
-- ✅ No mutable config (constants only)
-- ✅ No stateful logic in trap
-- ✅ Separate responder contract
-- ✅ Exact function signatures for TOML
+### Smart Contract Stack
+- `DustRecorder.sol`: Records transaction data.
+- `DustAttackTrap.sol`: Analyzes data and detects attacks (Drosera-compliant).
+- `DustAttackResponder.sol`: Responds to alerts.
 
-## Quick Start
+### Deployment Details (Hoodi Testnet)
+- **Chain ID**: `560048`
+- **DustRecorder**: `0x9Ae18fAe2553ED33871c7B054Cc38f428302d5dd`
+- **DustAttackTrap**: `0x7aF49C86CA5f796BAe77Ee7bEeB0D38d002776E6`
+- **DustAttackResponder**: `0x4C832Bb03356aAA2eDB6eC50Fe62F3Fc2d74E48c`
 
-1. **Deploy contracts:**
-   ```bash
-   forge script script/Deploy.s.sol:DeployDustAttackSystem --rpc-url <your_rpc_url> --private-key <your_private_key> --broadcast
-   ```
+## 🚀 Quick Start
 
-   Replace `<your_rpc_url>` and `<your_private_key>` with your actual RPC URL and private key.
+### 1. Deploy Contracts
+```bash
+# The contracts are already deployed on Hoodi testnet.
+# To redeploy, run:
+forge create src/DustAttackTrap.sol:DustAttackTrap --rpc-url <your_rpc_url> --private-key <your_private_key> --broadcast
+```
 
-2. **Configure Drosera TOML:**
-   ```toml
-   [trap]
-   trap_address = "YOUR_TRAP_ADDRESS"
-   collect_function = "collect()"
-   should_respond_function = "shouldRespond(bytes[])"
-   
-   [response]
-   response_address = "YOUR_RESPONDER_ADDRESS"
-   response_function = "respondToDustAttack(bytes)"
-   ```
+### 2. Configure Drosera
+Create a `drosera-config.toml` file:
+```toml
+[trap]
+trap_address = "0x7aF49C86CA5f796BAe77Ee7bEeB0D38d002776E6"
+collect_function = "collect()"
+should_respond_function = "shouldRespond(bytes[])"
 
-3. **Integrate with your target contract:**
-   ```solidity
-   // In your contract's receive/transfer functions:
-   recorder.record(msg.sender, msg.value);
-   ```
+[response]  
+response_address = "0x4C832Bb03356aAA2eDB6eC50Fe62F3Fc2d74E48c"
+response_function = "respondToDustAttack(bytes)"
 
-4. **Monitor activity:**
-   ```bash
-   # Update addresses in monitor.js first
-   node monitor.js
-   ```
+[network]
+chain_id = 560048
+rpc_url = "<your_rpc_url>"
 
-## How It Works
+[guardian]
+address = "<your_guardian_address>"
+```
 
-1. **Record**: Target contracts call `recorder.record()` on transfers
-2. **Collect**: Drosera calls `trap.collect()` to get recent transaction analysis
-3. **Analyze**: `trap.shouldRespond()` determines if dust threshold exceeded
-4. **Respond**: Guardian calls `responder.respondToDustAttack()` to take action
+### 3. Run Drosera Operator
+```bash
+# Install Drosera CLI
+curl -sSL https://install.drosera.network | sh
 
-## Settings
+# Initialize and start
+drosera init --config drosera-config.toml
+drosera start
+```
 
-- **Dust Threshold**: 0.001 ETH
-- **Count Threshold**: 15 transactions
-- **Block Window**: 10 blocks
-- **Sample Size**: 100 recent entries
+## 🔗 Integration Examples
 
-## Integration Examples
+Add this one line to any contract you want to monitor.
 
-### Faucet Integration
+**Interface:**
 ```solidity
-contract MyFaucet {
-    IDustRecorder recorder;
-    
-    function claim() external {
-        recorder.record(msg.sender, 0.01 ether);
-        // ... faucet logic
-    }
+interface IDustRecorder {
+    function record(address from, uint256 amount) external;
 }
 ```
 
-### Token Contract Integration
+**Example:**
 ```solidity
-contract MyToken {
-    IDustRecorder recorder;
+contract MyToken is ERC20 {
+    IDustRecorder constant DUST_RECORDER = IDustRecorder(0x9Ae18fAe2553ED33871c7B054Cc38f428302d5dd);
     
-    function transfer(address to, uint256 amount) public override {
-        recorder.record(msg.sender, amount);
+    function transfer(address to, uint256 amount) public override returns (bool) {
+        DUST_RECORDER.record(msg.sender, amount); // Record the transfer
         return super.transfer(to, amount);
     }
 }
 ```
 
-## Security Features
+## ⚠️ Security Considerations
 
-- Guardian-protected responses
-- Configurable thresholds via constants
-- Ring buffer prevents storage bloat
-- Unique sender tracking
-- Block window filtering
+- **Guardian Security**: Use a multisig for the guardian address in production.
+- **RPC Security**: Use a private, dedicated RPC endpoint for the Drosera operator in production to avoid rate limiting.
+- **Key Security**: Never commit private keys to Git.
 
-## Monitoring Dashboard
+---
 
-The monitor script provides:
-- Real-time transaction logging
-- Dust attack alerts
-- Emergency pause notifications
-- Periodic status updates
-
-## Next Steps
-
-1. Customize thresholds for your use case
-2. Add target contract integration
-3. Set up Drosera monitoring
-4. Configure automated responses
-5. Test with simulated dust attacks
-
-## Support
-
-- Check Drosera docs for network setup
-- Adjust gas limits for your network
-- Monitor performance with high transaction volumes
+🛡️ Protecting DeFi, One Dust Particle at a Time
